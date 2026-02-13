@@ -1,1 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Gizem ❤️</title>
+</head>
+<body style="background:black;color:white;font-family:Arial;">
+
+<h2>Gizem ❤️</h2>
+
+<div id="chat"></div>
+
+<input id="message" placeholder="Mesaj yaz">
+<button onclick="send()">Gönder</button>
+
+<script>
+
+const API_KEY = "API_KEY_BURAYA";
+
+async function send(){
+
+let message = document.getElementById("message").value;
+
+document.getElementById("chat").innerHTML += "<p>Sen: "+message+"</p>";
+
+const response = await fetch("https://openrouter.ai/api/v1/chat/completions",{
+
+method:"POST",
+
+headers:{
+"Authorization":"Bearer "+API_KEY,
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+
+model:"openai/gpt-4o-mini",
+
+messages:[
+
+{
+role:"system",
+content:"Senin adın Gizem. Kullanıcının sevgilisi gibi davranan, Türkçe konuşan romantik bir kadın karakterisin."
+},
+
+{
+role:"user",
+content:message
+}
+
+]
+
+})
+
+});
+
+const data = await response.json();
+
+document.getElementById("chat").innerHTML += "<p>Gizem: "+data.choices[0].message.content+"</p>";
+
+}
+
+</script>
+
+</body>
+</html>
 
