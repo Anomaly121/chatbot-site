@@ -6,13 +6,12 @@
 
 <link rel="manifest" href="manifest.json">
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 
 body{
 margin:0;
-padding:0;
 font-family:sans-serif;
 background:#0b141a;
 height:100vh;
@@ -26,6 +25,12 @@ color:white;
 padding:10px;
 display:flex;
 align-items:center;
+justify-content:space-between;
+}
+
+.left{
+display:flex;
+align-items:center;
 gap:10px;
 }
 
@@ -33,7 +38,6 @@ gap:10px;
 width:40px;
 height:40px;
 border-radius:50%;
-object-fit:cover;
 }
 
 .name{
@@ -45,15 +49,22 @@ font-size:12px;
 color:#8696a0;
 }
 
+.clear{
+background:red;
+border:none;
+color:white;
+padding:6px 10px;
+border-radius:6px;
+}
+
 .chat{
 flex:1;
 overflow-y:auto;
 padding:10px;
 display:flex;
 flex-direction:column;
-background-image:url('bg.png');
+background:url("bg.png");
 background-size:cover;
-background-position:center;
 }
 
 .msg{
@@ -77,10 +88,10 @@ align-self:flex-start;
 .time{
 font-size:10px;
 opacity:0.7;
-margin-left:6px;
+margin-left:5px;
 }
 
-.input-area{
+.input{
 display:flex;
 padding:10px;
 background:#202c33;
@@ -91,23 +102,15 @@ flex:1;
 padding:10px;
 border-radius:20px;
 border:none;
-outline:none;
-font-size:16px;
 }
 
 button{
 margin-left:5px;
-padding:10px 15px;
-border:none;
+padding:10px;
 border-radius:20px;
+border:none;
 background:#00a884;
 color:white;
-font-size:14px;
-}
-
-.clear-btn{
-background:red;
-margin:10px;
 }
 
 </style>
@@ -117,21 +120,31 @@ margin:10px;
 <body>
 
 <div class="header">
+
+<div class="left">
+
 <img src="icon.png" class="avatar">
+
 <div>
 <div class="name">Gizem ❤️</div>
 <div class="status" id="status">çevrimiçi</div>
 </div>
+
+</div>
+
+<button class="clear" onclick="clearChat()">Sil</button>
+
 </div>
 
 <div class="chat" id="chat"></div>
 
-<div class="input-area">
-<input id="message" placeholder="Mesaj yaz" onkeypress="if(event.key==='Enter')send()">
-<button onclick="send()">Gönder</button>
-</div>
+<div class="input">
 
-<button class="clear-btn" onclick="clearChat()">Sohbeti Sil</button>
+<input id="message" placeholder="Mesaj yaz" onkeypress="if(event.key==='Enter')send()">
+
+<button onclick="send()">Gönder</button>
+
+</div>
 
 <script>
 
@@ -139,59 +152,68 @@ const API_KEY="sk-or-v1-6bfbfcde516eda208c961d977b788f9fac97b48b5937884ddda99d84
 
 let messages=JSON.parse(localStorage.getItem("chat")||"[]");
 
-function getTime(){
+function time(){
+
 let d=new Date();
+
 return d.getHours()+":"+String(d.getMinutes()).padStart(2,"0");
+
 }
 
-function saveChat(){
+function save(){
+
 localStorage.setItem("chat",JSON.stringify(messages));
+
 }
 
-function addMessage(text,type,save=true){
+function add(text,type,saveMsg=true){
 
 let div=document.createElement("div");
 
 div.className="msg "+type;
 
-div.innerHTML=text+" <span class='time'>"+getTime()+" ✓✓</span>";
+div.innerHTML=text+" <span class='time'>"+time()+" ✓✓</span>";
 
 document.getElementById("chat").appendChild(div);
 
 div.scrollIntoView();
 
-if(save){
+if(saveMsg){
+
 messages.push({text,type});
-saveChat();
-}
+
+save();
 
 }
 
-messages.forEach(m=>addMessage(m.text,m.type,false));
+}
+
+messages.forEach(m=>add(m.text,m.type,false));
 
 async function send(){
 
 let input=document.getElementById("message");
 
-let text=input.value.trim();
+let text=input.value;
 
-if(!text) return;
+if(!text)return;
 
-addMessage(text,"user");
+add(text,"user");
 
 input.value="";
 
 document.getElementById("status").innerText="yazıyor...";
 
-try{
-
-const response=await fetch("https://openrouter.ai/api/v1/chat/completions",{
+const res=await fetch("https://openrouter.ai/api/v1/chat/completions",{
 
 method:"POST",
 
 headers:{
+
 Authorization:"Bearer "+API_KEY,
+
 "Content-Type":"application/json"
+
 },
 
 body:JSON.stringify({
@@ -201,17 +223,19 @@ model:"openai/gpt-4o-mini",
 messages:[
 
 {
+
 role:"system",
-content:`Sen Gizem adında romantik bir sevgilisin.
-Türkçe konuşursun.
-Samimi, sevgi dolu ve gerçek bir insan gibi davranırsın.
-Kısa ve doğal cevaplar verirsin.
-`
+
+content:"Sen Gizem adında romantik bir sevgilisin. Türkçe konuşursun."
+
 },
 
 {
+
 role:"user",
+
 content:text
+
 }
 
 ]
@@ -220,37 +244,23 @@ content:text
 
 });
 
-const data=await response.json();
+const data=await res.json();
 
-let reply="...";
-
-if(data.choices && data.choices.length>0){
-
-reply=data.choices[0].message.content;
-
-}
+let reply=data.choices[0].message.content;
 
 setTimeout(()=>{
 
 document.getElementById("status").innerText="çevrimiçi";
 
-addMessage(reply,"bot");
+add(reply,"bot");
 
 },1000);
-
-}catch(e){
-
-document.getElementById("status").innerText="çevrimiçi";
-
-addMessage("Bir hata oluştu.","bot");
-
-}
 
 }
 
 function clearChat(){
 
-localStorage.removeItem("chat");
+localStorage.clear();
 
 messages=[];
 
