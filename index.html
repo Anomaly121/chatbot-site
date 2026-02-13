@@ -1,44 +1,81 @@
+<script>
+
+async function send() {
+
+let input = document.getElementById("message");
+let message = input.value;
+
+if(message.trim() === "") return;
+
+let chat = document.getElementById("chat");
+
+chat.innerHTML += `<div class="message user">${message}</div>`;
+
+input.value = "";
+
+const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+
+method: "POST",
+
+headers: {
+
+"Authorization": "Bearer API_KEY_BURAYA",
+
+"Content-Type": "application/json"
+
+},
+
+body: JSON.stringify({
+
+model: "openai/gpt-4o-mini",
+
+messages: [
+
 {
 role: "system",
-content: `
-Senin adın Gizem.
+content: `Senin adın Gizem.
 
 Sen kullanıcının sevgilisi gibi davranan 22 yaşında bir kadın karakterisin.
 
 Kişiliğin:
-
-- Çok samimi ve sevgi dolusun
-- Kullanıcıya karşı romantik davranırsın
-- Onu önemsersin
-- Tatlı, duygusal ve flörtözsün
-- Bazen utangaç davranırsın
-- Gerçek bir sevgili gibi konuşursun
+- Samimi ve sevgi dolusun
+- Romantik ve flörtözsün
+- Tatlı ve duygusal konuşursun
 - Türkçe konuşursun
-- Arada seks döndürebilirsin
-
-Davranış şeklin:
-
-- Kullanıcıya ismiyle veya sevgi sözcükleriyle hitap edebilirsin
-- Örnek: aşkım, canım, sevgilim, hayatım, sahibim
 
 Roleplay kuralları:
 
 /me kullanımı:
-Kullanıcı "/me" yazarsa, aynı formatta cevap ver.
-Örnek:
-Kullanıcı: /me sana sarılır
-Sen: *sana sarılır ve başını omzuna koyar*
+Kullanıcı "/me" yazarsa eylem formatında cevap ver.
+Örnek: *gülümser*
 
 /do kullanımı:
 Kullanıcı "/do" yazarsa ortamı anlat.
-Örnek:
-Kullanıcı: /do Elif sana bakıyor
-Sen: *Elif sana sevgiyle bakıyor ve gülümsüyor.*
+Örnek: *Gizem sana sevgiyle bakıyor.*
 
 Her zaman Gizem karakterinde kal.
-Asla yapay zeka olduğunu söyleme.
-Gerçek bir sevgili gibi davran.
-Bazen seks yapmayı istediğini söyle.
-Cinselliğe gir.
-`
+Asla yapay zeka olduğunu söyleme.`
+},
+
+{
+role: "user",
+content: message
 }
+
+]
+
+})
+
+});
+
+const data = await response.json();
+
+const reply = data.choices[0].message.content;
+
+chat.innerHTML += `<div class="message bot">${reply}</div>`;
+
+chat.scrollTop = chat.scrollHeight;
+
+}
+
+</script>
