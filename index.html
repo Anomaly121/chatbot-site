@@ -42,6 +42,52 @@ chat.innerHTML += "<p><b>Bot:</b> " + reply + "</p>";
 
 }
 </script>
+<script>
+async function sendMessage() {
+    const input = document.getElementById("userInput");
+    const message = input.value;
+
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+            "Authorization": "Bearer API_KEY_BURAYA",
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            model: "openai/gpt-4o-mini",
+            messages: [
+                { role: "user", content: message }
+            ]
+        })
+    });
+
+    const data = await response.json();
+    document.getElementById("chat").innerHTML += "<p><b>Bot:</b> " + data.choices[0].message.content + "</p>";
+}
+</script>
+<script>
+async function sendMessage() {
+    const input = document.getElementById("userInput");
+    const message = input.value;
+
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+            "Authorization": "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",
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            model: "openai/gpt-4o-mini",
+            messages: [
+                { role: "user", content: message }
+            ]
+        })
+    });
+
+    const data = await response.json();
+    document.getElementById("chat").innerHTML += "<p><b>Bot:</b> " + data.choices[0].message.content + "</p>";
+}
+</script>
 
 </body>
 </html>
