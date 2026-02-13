@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Türkçe Chatbot</title>
+<meta charset="UTF-8">
+</head>
+<body>
+
+<h2>AI Chatbot</h2>
+
+<div id="chat"></div>
+
+<input type="text" id="message" placeholder="Mesaj yaz">
+<button onclick="send()">Gönder</button>
+
+<script>
+async function send() {
+
+let message = document.getElementById("message").value;
+
+let chat = document.getElementById("chat");
+
+chat.innerHTML += "<p><b>Sen:</b> " + message + "</p>";
+
+let response = await fetch("https://api.openai.com/v1/chat/completions", {
+method: "POST",
+headers: {
+"Content-Type": "application/json",
+"Authorization": "Bearer API_KEY_BURAYA"
+},
+body: JSON.stringify({
+model: "gpt-3.5-turbo",
+messages: [{role: "user", content: message}]
+})
+});
+
+let data = await response.json();
+
+let reply = data.choices[0].message.content;
+
+chat.innerHTML += "<p><b>Bot:</b> " + reply + "</p>";
+
+}
+</script>
+
+</body>
+</html>
