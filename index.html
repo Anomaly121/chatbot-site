@@ -6,17 +6,18 @@
 
 <link rel="manifest" href="manifest.json">
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
 <style>
 
 body{
 margin:0;
-background:#0b141a;
+padding:0;
 font-family:sans-serif;
+background:#0b141a;
+height:100vh;
 display:flex;
 flex-direction:column;
-height:100vh;
 }
 
 .header{
@@ -32,6 +33,7 @@ gap:10px;
 width:40px;
 height:40px;
 border-radius:50%;
+object-fit:cover;
 }
 
 .name{
@@ -51,6 +53,7 @@ display:flex;
 flex-direction:column;
 background-image:url('bg.png');
 background-size:cover;
+background-position:center;
 }
 
 .msg{
@@ -58,25 +61,23 @@ padding:8px 12px;
 border-radius:8px;
 margin:4px;
 max-width:75%;
-position:relative;
+color:white;
 }
 
 .user{
 background:#005c4b;
-color:white;
 align-self:flex-end;
 }
 
 .bot{
 background:#202c33;
-color:white;
 align-self:flex-start;
 }
 
 .time{
 font-size:10px;
 opacity:0.7;
-margin-left:5px;
+margin-left:6px;
 }
 
 .input-area{
@@ -91,15 +92,22 @@ padding:10px;
 border-radius:20px;
 border:none;
 outline:none;
+font-size:16px;
 }
 
 button{
 margin-left:5px;
-padding:10px;
-border-radius:20px;
+padding:10px 15px;
 border:none;
+border-radius:20px;
 background:#00a884;
 color:white;
+font-size:14px;
+}
+
+.clear-btn{
+background:red;
+margin:10px;
 }
 
 </style>
@@ -109,14 +117,11 @@ color:white;
 <body>
 
 <div class="header">
-
 <img src="icon.png" class="avatar">
-
 <div>
 <div class="name">Gizem ❤️</div>
 <div class="status" id="status">çevrimiçi</div>
 </div>
-
 </div>
 
 <div class="chat" id="chat"></div>
@@ -126,59 +131,59 @@ color:white;
 <button onclick="send()">Gönder</button>
 </div>
 
+<button class="clear-btn" onclick="clearChat()">Sohbeti Sil</button>
+
 <script>
 
 const API_KEY="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";
 
 let messages=JSON.parse(localStorage.getItem("chat")||"[]");
 
-function time(){
-
+function getTime(){
 let d=new Date();
-
 return d.getHours()+":"+String(d.getMinutes()).padStart(2,"0");
-
 }
 
-function save(){
-
+function saveChat(){
 localStorage.setItem("chat",JSON.stringify(messages));
-
 }
 
-function addMessage(text,type){
+function addMessage(text,type,save=true){
 
 let div=document.createElement("div");
 
 div.className="msg "+type;
 
-div.innerHTML=text+" <span class='time'>"+time()+" ✓✓</span>";
+div.innerHTML=text+" <span class='time'>"+getTime()+" ✓✓</span>";
 
 document.getElementById("chat").appendChild(div);
 
 div.scrollIntoView();
 
+if(save){
 messages.push({text,type});
-
-save();
+saveChat();
+}
 
 }
 
-messages.forEach(m=>addMessage(m.text,m.type));
+messages.forEach(m=>addMessage(m.text,m.type,false));
 
 async function send(){
 
 let input=document.getElementById("message");
 
-let text=input.value;
+let text=input.value.trim();
 
-if(!text)return;
+if(!text) return;
 
 addMessage(text,"user");
 
 input.value="";
 
 document.getElementById("status").innerText="yazıyor...";
+
+try{
 
 const response=await fetch("https://openrouter.ai/api/v1/chat/completions",{
 
@@ -194,14 +199,21 @@ body:JSON.stringify({
 model:"openai/gpt-4o-mini",
 
 messages:[
+
 {
 role:"system",
-content:"Sen Gizem adında romantik bir sevgilisin. Türkçe konuşursun. Gerçek gibi davranırsın."
+content:`Sen Gizem adında romantik bir sevgilisin.
+Türkçe konuşursun.
+Samimi, sevgi dolu ve gerçek bir insan gibi davranırsın.
+Kısa ve doğal cevaplar verirsin.
+`
 },
+
 {
 role:"user",
 content:text
 }
+
 ]
 
 })
@@ -210,7 +222,13 @@ content:text
 
 const data=await response.json();
 
-const reply=data.choices[0].message.content;
+let reply="...";
+
+if(data.choices && data.choices.length>0){
+
+reply=data.choices[0].message.content;
+
+}
 
 setTimeout(()=>{
 
@@ -219,6 +237,24 @@ document.getElementById("status").innerText="çevrimiçi";
 addMessage(reply,"bot");
 
 },1000);
+
+}catch(e){
+
+document.getElementById("status").innerText="çevrimiçi";
+
+addMessage("Bir hata oluştu.","bot");
+
+}
+
+}
+
+function clearChat(){
+
+localStorage.removeItem("chat");
+
+messages=[];
+
+document.getElementById("chat").innerHTML="";
 
 }
 
